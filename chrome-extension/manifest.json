@@ -1,0 +1,15 @@
+{
+    "name": "Loki Poker Tracker",
+    "version": "1.0",
+    "description": "Track poker hands",
+    "manifest_version": 2,
+    "permissions": [
+        "webRequest",
+        "https://play.globalpoker.com/"
+    ],
+    "content_scripts": [{
+        "js": ["content_script.js"],
+        "matches": ["https://play.globalpoker.com/*"],
+        "run_at": "document_start"
+    }]
+}
