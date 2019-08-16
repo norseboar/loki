@@ -382,6 +382,78 @@ const REVERSED_GAME_DATA_CLASSES = {
   127: "JsngInactivityResponse",
 }
 
+const REVERSED_ACTION_TYPES = {
+  0: "SMALL_BLIND",
+  1: "BIG_BLIND",
+  2: "CALL",
+  3: "CHECK",
+  4: "BET",
+  5: "RAISE",
+  6: "FOLD",
+  7: "DECLINE_ENTRY_BET",
+  8: "ANTE",
+  9: "BIG_BLIND_PLUS_DEAD_SMALL_BLIND",
+  10: "DEAD_SMALL_BLIND",
+  11: "ENTRY_BET",
+  12: "WAIT_FOR_BIG_BLIND",
+  13: "DISCARD",
+  14: "BRING_IN",
+  15: "SHOW_CARDS",
+  16: "MUCK_CARDS",
+  17: "TIME_BANK",
+  18: "HIT",
+  19: "STAND",
+  20: "DOUBLE",
+  21: "SPLIT",
+  22: "SHOW_REMAINING_CARDS",
+  23: "PASS",
+  24: "PLAY_CARD",
+  25: "EXPOSE_CARD",
+  26: "CONTINUE_HAND",
+  27: "ANTE_PLUS_SMALL_BLIND",
+  28: "ANTE_PLUS_BIG_BLIND",
+  29: "ANTE_PLUS_ENTRY_BET",
+  30: "ANTE_PLUS_BIG_BLIND_PLUS_DEAD_SMALL_BLIND",
+  31: "ANTE_PLUS_DEAD_SMALL_BLIND",
+  32: "POSITION_CARDS"
+}
+
+const ACTION_TYPES = {
+  "SMALL_BLIND": 0,
+  "BIG_BLIND": 1,
+  "CALL": 2,
+  "CHECK": 3,
+  "BET": 4,
+  "RAISE": 5,
+  "FOLD": 6,
+  "DECLINE_ENTRY_BET": 7,
+  "ANTE": 8,
+  "BIG_BLIND_PLUS_DEAD_SMALL_BLIND": 9,
+  "DEAD_SMALL_BLIND": 10,
+  "ENTRY_BET": 11,
+  "WAIT_FOR_BIG_BLIND": 12,
+  "DISCARD": 13,
+  "BRING_IN": 14,
+  "SHOW_CARDS": 15,
+  "MUCK_CARDS": 16,
+  "TIME_BANK": 17,
+  "HIT": 18,
+  "STAND": 19,
+  "DOUBLE": 20,
+  "SPLIT": 21,
+  "SHOW_REMAINING_CARDS": 22,
+  "PASS": 23,
+  "PLAY_CARD": 24,
+  "EXPOSE_CARD": 25,
+  "CONTINUE_HAND": 26,
+  "ANTE_PLUS_SMALL_BLIND": 27,
+  "ANTE_PLUS_BIG_BLIND": 28,
+  "ANTE_PLUS_ENTRY_BET": 29,
+  "ANTE_PLUS_BIG_BLIND_PLUS_DEAD_SMALL_BLIND": 30,
+  "ANTE_PLUS_DEAD_SMALL_BLIND": 31,
+  "POSITION_CARDS": 32
+}
+
 function shouldSendMessage(message) {
   const ACCEPTABLE_MESSAGES = [15, 60, 61, 62, 100];
   // return ACCEPTABLE_MESSAGES.includes(message.classId);
@@ -444,7 +516,6 @@ function checkForDOM() {
     var messageListElem = document.createElement('div');
     messageListElem.id = '__socketData';
     messageListElem.className = 'fs-block'  // Stop fullstory from seeing these
-    // messageListElem.style.height = 0;
     messageListElem.style.display = 'none';
     document.body.appendChild(messageListElem);
   } else {
@@ -465,17 +536,40 @@ const GAME_PHASES = {
 function createBlankTableState() {
   return {
     tableid: null,
-    seats: Array(6),
+    players: Array(6),
     gamePhase: null,
-    playerSeat: null,
+    myPlayerSeat: null,
     hudElems: null
   }
 }
 
 let tableState = createBlankTableState();
 
+function createPlayer(pid, nick) {
+  return {
+    pid,
+    nick,
+    vpip: {
+      numerator: 0,
+      denominator: 0,
+      eligibleInHand: false,
+      qualifiedInHand: false
+    },
+    pfr: {
+      numerator: 0,
+      denominator: 0,
+      eligibleInHand: false,
+      qualifiedInHand: false
+    }
+  }
+}
+
+function getStatHtml(statName, stat) {
+  return `<b>${statName}</b>: ${Math.round(100*stat.numerator/stat.denominator)}% (${stat.numerator}/${stat.denominator})`;
+}
+
 function createHud() {
-  const seatOffset = tableState.playerSeat || 0;
+  const seatOffset = tableState.myPlayerSeat || 0;
   const seatContainer = document.getElementById(`seatContainer-${tableState.tableid}`)
   if (!seatContainer) {
     // If no seatContainer can be found, that means the table html hasn't loaded
@@ -483,14 +577,13 @@ function createHud() {
     return;
   }
 
-  tableState.hudElems = [...Array(tableState.seats.length).keys()].map(function(i) {
-    let elemId;
-    if (tableState.playerSeat !== null && i === 0) {
-      elemId = `myPlayerSeat-${tableState.tableid}`
-    } else {
-      const seatNum = i + seatOffset % 6;
-      elemId = `seat${seatNum}-${tableState.tableid}`
-    }
+  tableState.hudElems = [...Array(tableState.players.length).keys()].map(function(i) {
+    
+    const seatNum = (i + seatOffset) % 6;
+    const seatPlayer = tableState.players[seatNum];
+    const elemId = (tableState.myPlayerSeat !== null && i === 0
+                    ? `myPlayerSeat-${tableState.tableid}`
+                    : `seat${seatNum}-${tableState.tableid}`)
     const seatElem = document.getElementById(elemId);
     if (!seatElem) {
       return null;
@@ -501,14 +594,22 @@ function createHud() {
     positionHud.className = 'fs-block';
     positionHud.style.cssText = `
       position: relative;
-      height: 40px;
-      width: 160px;
+      height: 48px;
+      width: 220px;
       z-index: 10;
       background-color: white;
+      color: black;
     `;
+    if (seatPlayer) {
+      positionHud.innerHTML = `
+        <div>${getStatHtml('VPIP', seatPlayer.vpip)}</div>
+        <div>${getStatHtml('PFR', seatPlayer.pfr)}</div>
+      `;
+    }
     seatElem.append(positionHud);
     return positionHud;
   });
+
 
   tableState.hudElems[0].style.top = '80%';
   tableState.hudElems[0].style.left = '90%';
@@ -540,7 +641,7 @@ function processMessage(message) {
   if (tableState.tableid === null) {
     switch(message.classId) {
       case PACKET_CLASSES.NotifySeatedPacket:
-        tableState.playerSeat = message.seat;
+        tableState.myPlayerSeat = message.seat;
         tableState.tableid = message.tableid;
         tableState.gamePhase = GAME_PHASES.NotStarted;
         break;
@@ -559,54 +660,122 @@ function processMessage(message) {
 
   switch (message.classId) {
     case PACKET_CLASSES.SeatInfoPacket:
-      tableState.seats[message.seat] = {
-        pid: message.player.pid,
-        nick: message.player.nick
-      }
-      console.log(message);
+      tableState.players[message.seat] = createPlayer(message.player.pid, message.player.nick);
       break;
     case PACKET_CLASSES.NotifyJoinPacket:
-      tableState.seats[message.seat] = {
-        pid: message.pid,
-        nick: message.nick
-      }
+      tableState.players[message.seat] = createPlayer(message.pid, message.nick);
       break;
     case PACKET_CLASSES.NotifyLeavePacket:
-      const index = tableState.seats.findIndex(seat => seat.pid === message.pid);
-      tableState.seats[index] = null;
+      const index = tableState.players.findIndex(player => player && player.pid === message.pid);
+      tableState.players[index] = null;
       break;
     case PACKET_CLASSES.NotifySeatedPacket:
-      tableState.playerSeat = message.seat;
+      tableState.myPlayerSeat = message.seat;
       break;
     case PACKET_CLASSES.UnwatchResponsePacket:
     case PACKET_CLASSES.LeaveResponsePacket:
       tableState = createBlankTableState();
       removeHud();
       break;
+    case PACKET_CLASSES.GameTransportPacket:
+      const decodedGameData = atob(message.gamedata);
+      const gameDataBytes = Uint8Array.from(decodedGameData, b => b.charCodeAt(0))
+      const gameDataClass = gameDataBytes[4];
+      logMsg += `: ${REVERSED_GAME_DATA_CLASSES[gameDataClass]}`
+      switch(gameDataClass) {
+        case GAME_DATA_CLASSES.HandStartInfo:
+          tableState.gamePhase = GAME_PHASES.Preflop;
+          break;
+        case GAME_DATA_CLASSES.DealPublicCards:
+          switch(tableState.gamePhase){
+            case GAME_PHASES.Preflop:
+              tableState.gamePhase = GAME_PHASES.Flop;
+              tableState.players.forEach(function(player) {  
+                if (!player) {
+                  return;
+                }
+                if(player.vpip.eligibleInHand){
+                  player.vpip.denominator += 1;
+                }
+                if(player.vpip.qualifiedInHand){
+                  player.vpip.numerator += 1;
+                }
+                if(player.pfr.eligibleInHand){
+                  player.pfr.denominator += 1;
+                }
+                if(player.pfr.qualifiedInHand){
+                  player.pfr.numerator += 1;
+                }
+                player.vpip.eligibleInHand = false;
+                player.vpip.qualifiedInHand = false;
+                player.pfr.eligibleInHand = false;
+                player.pfr.qualifiedInHand = false;
+              });
+              break;
+            case GAME_PHASES.Flop:
+              tableState.gamePhase = GAME_PHASES.Turn;
+              break;
+            case GAME_PHASES.Turn:
+              tableState.gamePhase = GAME_PHASES.River;
+              break;
+            default:
+              tableState.gamePhase = GAME_PHASES.NotStarted;
+          }
+          break;
+        case GAME_DATA_CLASSES.PerformAction:
+          if (tableState.gamePhase !== GAME_PHASES.Preflop) {
+            break;
+          }
+          const playerBytes = gameDataBytes.slice(9, 13);
+          function bytesToIntReducer(acc, val, i) {
+            return Math.pow(2, (3-i)*8)*val + acc;
+          }
+          const pid = playerBytes.reduce(bytesToIntReducer);
+          const player = tableState.players.find(player => player && player.pid === pid);
+
+          const actionType = gameDataBytes[13];
+          switch(actionType) {
+            case ACTION_TYPES.CALL:
+              player.vpip.eligibleInHand = true;
+              player.vpip.qualifiedInHand = true;
+              player.pfr.eligibleInHand = true;
+              break;
+            case ACTION_TYPES.BET:
+            case ACTION_TYPES.RAISE:
+              player.vpip.eligibleInHand = true;
+              player.vpip.qualifiedInHand = true;
+              player.pfr.eligibleInHand = true;
+              player.pfr.qualifiedInHand = true;
+              break;
+            case ACTION_TYPES.CHECK:
+              player.pfr.eligibleInHand = true;
+              break;
+            case ACTION_TYPES.FOLD:
+              player.vpip.eligibleInHand = true;
+              player.pfr.eligibleInHand = true;
+              break;
+            default:
+              break;
+          }
+          break;
+        default:
+          break;
+      }
+      break;
     default:
       break;
   }
 
   renderHUD();
-  // if (message.classId === 100) {
-  //   const decodedGameData = atob(message.gamedata);
-  //   const gameDataBytes = Uint8Array.from(decodedGameData, b => b.charCodeAt(0))
-  //   // logMsg += `: ${REVERSED_GAME_DATA_CLASSES[gameDataBytes[4]]}`
-  // }
-  // console.log(logMsg);
-  // if (message.classId === 15) {
-  //   console.log(message);
-  // }
+  console.log(logMsg);
 }
 
 function retrieveMessage() {
   const messageListElem = document.getElementById('__socketData')
   messageListElem.childNodes.forEach(function(messageElem) {
-    // console.log('intercepted!');
-    // console.log(JSON.parse(messageElem.innerHTML));
     const message = JSON.parse(messageElem.innerHTML);
     if (message.classId != null) {
-      console.log(REVERSED_PACKET_CLASSES[message.classId]);
+      // console.log(REVERSED_PACKET_CLASSES[message.classId]);
       processMessage(message)
     }
   });
