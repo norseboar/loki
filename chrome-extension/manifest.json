@@ -8,7 +8,13 @@
         "https://play.globalpoker.com/"
     ],
     "content_scripts": [{
-        "js": ["content_script.js"],
+        "js": [
+            "socketMessenger.js"
+            // "constants.js", 
+            // "stats.js",
+            // "content_script.js"
+        ],
+        "css": ["styles.css"],
         "matches": ["https://play.globalpoker.com/*"],
         "run_at": "document_start"
     }]
