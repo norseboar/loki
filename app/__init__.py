@@ -30,7 +30,8 @@ def check_password(f):
 
 @app.after_request
 def add_headers(res):
-    current_accepted_headers = res.headers.get('Access-Control-Allow-Headers')
+    current_accepted_headers = res.headers.get(
+        'Access-Control-Allow-Headers', '')
     new_accepted_headers = current_accepted_headers + ', X-Api-Key'
     res.headers.add('Access-Control-Allow-Origin', CORS_URL)
     res.headers.add('Access-Control-Allow-Headers', new_accepted_headers)
