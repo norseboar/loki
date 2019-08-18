@@ -166,8 +166,9 @@ async function processMessage(message) {
       break;
     case PACKET_CLASSES.UnwatchResponsePacket:
     case PACKET_CLASSES.LeaveResponsePacket:
+      console.log('leaving!')
       for (const player of tableState.listPlayers()) {
-        await savePlayer(p);
+        await savePlayer(player);
       }
       tableState = createTableState();
       removeHud();
@@ -244,12 +245,6 @@ async function processMessage(message) {
               }
               break;
             case GAME_PHASES.Flop:
-              if (gameState.raiseCount === 0) {
-                player.cbet.setHadOpportunity();
-                if (actionType === ACTION_TYPES.BET) {
-                  player.cbet.setTookAction();
-                }
-              }
               if (gameState.raiseCount === 1) {
                 player.foldToCbet.setHadOpportunity();
                 if (actionType === ACTION_TYPES.FOLD) {
@@ -274,7 +269,7 @@ async function processMessage(message) {
   }
 
   renderHUD();
-  // console.log(logMsg);
+  console.log(logMsg);
 }
 
 async function retrieveMessage() {
