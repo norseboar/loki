@@ -4,7 +4,7 @@ import os
 class Config(object):
     ENV = None
     DEBUG = False
-    SECRET_KEY = os.environ['SECRET_KEY']
+    API_KEY = os.environ['LOKI_API_KEY']
     SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
     TESTING = False
 
