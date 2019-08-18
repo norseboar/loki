@@ -10,20 +10,26 @@ const defaultOptions = {
 async function loadPlayer(pid, nick, seat) {
   const response = await fetch(SERVER_URL + `/players/${pid}`, defaultOptions);
 
+  let existingData = null;
   if (response.ok) {
-    player = response.json();
-  } else {
-    player = {
-      pid,
-      vpip: createStat(),
-      pfr: createStat(),
-      threeBet: createStat(),
-      foldToCbet: createStat(),
-      isNew: true
+    existingData = response.json();
+    if (pid !== existingData.pid) {
+      console.log(`Request for PID ${pid} fetched wrong player`)
+      console.log(existingData);
+      existingData = null;
     }
   }
-  player.nick = nick;
-  player.seat = seat;
+
+  player = {
+    pid,
+    nick,
+    seat,
+    vpip: createStat(existingData && existingData.vpip),
+    pfr: createStat(existingData && existingData.pfr),
+    threeBet: createStat(existingData && existingData.threeBet),
+    foldToCbet: createStat(existingData && existingData.foldToCbet),
+    isNew: Boolean(existingData)
+  }
   return player;
 }
 
@@ -38,7 +44,8 @@ async function savePlayer(player) {
     response = await fetch(SERVER_URL + '/players/', requestOptions);
   } else {
     requestOptions.method = 'PATCH';
-    response = await fetch(SERVER_URL + `/players/${player.pid}`);
+    response = await fetch(SERVER_URL + `/players/${player.pid}`,
+                           requestOptions);
   }
 
   if (!response.ok) {

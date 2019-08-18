@@ -33,6 +33,8 @@ def add_headers(res):
     new_accepted_headers = 'X-Api-Key, Content-Type'
     res.headers.add('Access-Control-Allow-Origin', CORS_URL)
     res.headers.add('Access-Control-Allow-Headers', new_accepted_headers)
+    res.headers.add('Access-Control-Allow-Methods',
+                    'HEAD,OPTIONS,GET,POST,PATCH,DELETE')
     return res
 
 @app.route('/players/<pid>')

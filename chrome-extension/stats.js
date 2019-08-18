@@ -1,7 +1,7 @@
-function createStat() {
+function createStat(statData) {
   return {
-    actions: 0,
-    opportunities: 0,
+    actions: statData ? statData.actions : 0,
+    opportunities: statData ? statData.opportunities : 0,
     hadOpportunity: false,
     tookAction: false,
     process: function() {
