@@ -166,7 +166,9 @@ async function processMessage(message) {
       break;
     case PACKET_CLASSES.UnwatchResponsePacket:
     case PACKET_CLASSES.LeaveResponsePacket:
-      tableState.listPlayers().forEach(p => await savePlayer(p));
+      for (const player of tableState.listPlayers()) {
+        await savePlayer(p);
+      }
       tableState = createTableState();
       removeHud();
       break;
@@ -277,13 +279,13 @@ async function processMessage(message) {
 
 async function retrieveMessage() {
   const messageListElem = document.getElementById('__socketData')
-  messageListElem.childNodes.forEach(function(messageElem) {
+  for (const messageElem of messageListElem.childNodes){
     const message = JSON.parse(messageElem.innerHTML);
     if (message.classId != null) {
       // console.log(REVERSED_PACKET_CLASSES[message.classId]);
       await processMessage(message)
     }
-  });
+  }
   while (messageListElem.firstChild) {
     messageListElem.removeChild(messageListElem.firstChild);
   }

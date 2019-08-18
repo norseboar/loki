@@ -5,7 +5,7 @@ from flask import abort, Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
-POKER_URL = 'https://play.globalpoker.com'
+CORS_URL = 'chrome-extension://gapdhblmlhmgahljicdehhjpeclbjhde'
 
 app = Flask(__name__)
 app.config.from_object(os.environ['APP_SETTINGS'])
@@ -30,7 +30,7 @@ def check_password(f):
 
 @app.after_request
 def add_headers(response):
-    response.headers.add('Access-Control-Allow-Origin', POKER_URL)
+    response.headers.add('Access-Control-Allow-Origin', CORS_URL)
     return response
 
 @app.route('/players/<pid>')

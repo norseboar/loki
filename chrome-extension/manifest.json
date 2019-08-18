@@ -10,8 +10,9 @@
     "content_scripts": [{
         "js": [
             "socketMessenger.js",
-            "constants.js", 
+            "constants.js",
             "stats.js",
+            "players.js",
             "content_script.js"
         ],
         "css": ["styles.css"],
