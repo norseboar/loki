@@ -6,7 +6,6 @@ function shouldSendMessage(message) {
 }
 
 function patchWebSocket() {
-  console.log('running patch')
   var OrigWebSocket = window.WebSocket;
   var callWebSocket = OrigWebSocket.apply.bind(OrigWebSocket);
   var wsAddListener = OrigWebSocket.prototype.addEventListener;
@@ -26,9 +25,7 @@ function patchWebSocket() {
     }
 
     wsAddListener(ws, 'message', function(event) {
-      console.log('in listener')
       if (shouldSendMessage(JSON.parse(event.data))) {
-        console.log(event.data);
         const messageListElem = document.getElementById('__socketData')
         const messageElem = document.createElement("div");
         messageListElem.appendChild(messageElem);

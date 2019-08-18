@@ -17,8 +17,8 @@ function createTableState() {
     hudElems: null,
     listPlayers: function() {
       l = [];
-      for (const player in this.players) {
-        l.push(player);
+      for (const pid in this.players) {
+        l.push(this.players[pid]);
       }
       return l;
     }
@@ -43,7 +43,8 @@ function createPlayer(pid, nick, seat) {
 }
 
 function createHud() {
-  const seatOffset = tableState.SeatSeat || 0;
+  const seatOffset = tableState.myPlayerSeat !== -1 
+    ? tableState.myPlayerSeat : 0;
   const seatContainer = document.getElementById(
     `seatContainer-${tableState.tableid}`
   );
@@ -56,18 +57,19 @@ function createHud() {
 
   tableState.hudElems = [...Array(TABLE_SIZE).keys()].map(function(i) {
     const seat = (i + seatOffset) % TABLE_SIZE;
-    const player = tableState.listPlayers().find(p => p.seat === seat);
-    const elemId = (tableState.Seat !== null && i === 0
-                    ? `SeatSeat-${tableState.tableid}`
+    const elemId = (tableState.myPlayerSeat !== -1 && i === 0
+                    ? `myPlayerSeat-${tableState.tableid}`
                     : `seat${seat}-${tableState.tableid}`)
     const seatElem = document.getElementById(elemId);
     if (!seatElem) {
-      return null;
+      console.log(`could not find seat w/ name ${elemId}`)
+      return null;      
     }
 
     const positionHud = document.createElement('div');
     positionHud.id = `__position${i}Hud`;
     positionHud.className = 'position-hud fs-block';
+    const player = tableState.listPlayers().find(p => p.seat === seat);
     if (player) {
       positionHud.innerHTML = `
         <table>
@@ -83,14 +85,14 @@ function createHud() {
               <td>${player.foldToCbet.getPercentage()}</td>
             </tr>
             <tr>
-              <td><b>Acts</b></td>
+              <td><b>A</b></td>
               <td>${player.vpip.actions}</td>
               <td>${player.pfr.actions}</td>
               <td>${player.threeBet.actions}</td>
               <td>${player.foldToCbet.actions}</td>
             </tr>
             <tr>
-              <td><b>Opps</b></td>
+              <td><b>O</b></td>
               <td>${player.vpip.opportunities}</td>
               <td>${player.pfr.opportunities}</td>
               <td>${player.threeBet.opportunities}</td>
@@ -105,16 +107,16 @@ function createHud() {
   });
 
 
-  tableState.hudElems[0].style.top = '80%';
-  tableState.hudElems[0].style.left = '90%';
+  tableState.hudElems[0].style.top = '60%';
+  tableState.hudElems[0].style.left = '80%';
   tableState.hudElems[1].style.top = '130%';
-  tableState.hudElems[2].style.top = '70%';
+  tableState.hudElems[2].style.top = '60%';
   tableState.hudElems[3].style.top = '-1%';
-  tableState.hudElems[3].style.left = '80%';
-  tableState.hudElems[4].style.top = '70%';
-  tableState.hudElems[4].style.left = '50%';
+  tableState.hudElems[3].style.left = '-60%';
+  tableState.hudElems[4].style.top = '60%';
+  tableState.hudElems[4].style.left = '25%';
   tableState.hudElems[5].style.top = '130%';
-  tableState.hudElems[5].style.left = '50%';
+  tableState.hudElems[5].style.left = '30%';
 }
 
 function removeHud() {
@@ -134,6 +136,8 @@ function processAllStats() {
   tableState.listPlayers().forEach(function(player){
     player.vpip.process();
     player.pfr.process();
+    player.threeBet.process();
+    player.foldToCbet.process();
   });
 }
 
@@ -166,7 +170,7 @@ function processMessage(message) {
       break;
     case PACKET_CLASSES.NotifyJoinPacket:
       tableState.players[message.pid] = createPlayer(
-        message.player.pid, message.nick, message.seat);
+        message.pid, message.nick, message.seat);
       break;
     case PACKET_CLASSES.NotifyLeavePacket:
       delete tableState.players[message.pid];
@@ -189,6 +193,7 @@ function processMessage(message) {
         case GAME_DATA_CLASSES.HandStartInfo:
           processAllStats();
           gameState.phase = GAME_PHASES.Preflop;
+          gameState.raiseCount = 0;
           break;
         case GAME_DATA_CLASSES.DealPublicCards:
           processAllStats();
@@ -217,6 +222,11 @@ function processMessage(message) {
 
           const actionType = gameDataBytes[13];
 
+          if (![ACTION_TYPES.FOLD, ACTION_TYPES.CHECK, ACTION_TYPES.CALL, 
+                ACTION_TYPES.BET, ACTION_TYPES.RAISE].includes(actionType)) {
+            break;
+          }
+
           switch (gameState.phase) {
             case GAME_PHASES.Preflop:
               if (gameState.raiseCount === 1) {
@@ -231,7 +241,7 @@ function processMessage(message) {
                 case ACTION_TYPES.RAISE:
                   player.vpip.setTookAction();
                   player.pfr.setTookAction();
-                  if (gameState.raiseCount === 2) {
+                  if (gameState.raiseCount === 1) {
                     player.threeBet.setTookAction();
                   }
                   break;
@@ -243,6 +253,7 @@ function processMessage(message) {
                 default:
                   break;
               }
+              break;
             case GAME_PHASES.Flop:
               if (gameState.raiseCount === 0) {
                 player.cbet.setHadOpportunity();
@@ -256,6 +267,7 @@ function processMessage(message) {
                   player.foldToCbet.setTookAction();
                 }
               }
+              break;
             default:
               break;
           }
@@ -273,7 +285,7 @@ function processMessage(message) {
   }
 
   renderHUD();
-  console.log(logMsg);
+  // console.log(logMsg);
 }
 
 function retrieveMessage() {

@@ -6,13 +6,13 @@ function createStat() {
     tookAction: false,
     process: function() {
       if (this.hadOpportunity) {
-        opportunities += 1;
+        this.opportunities += 1;
       };
       if (this.tookAction) {
-        actions += 1;
+        this.actions += 1;
       }
-      hadOpportunity = false;
-      tookAction = false;
+      this.hadOpportunity = false;
+      this.tookAction = false;
     },
     setTookAction: function() {
       this.hadOpportunity = true;

@@ -2,11 +2,16 @@ td {
   padding: 2px;
 }
 
+thead {
+  font-weight: bold;
+}
+
 .position-hud {
   position: relative;
   height: 80px;
-  width: 160px;
+  width: 145px;
   z-index: 10;
   background-color: white;
   color: black;
+  user-select: text;
 }

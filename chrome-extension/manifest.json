@@ -9,10 +9,10 @@
     ],
     "content_scripts": [{
         "js": [
-            "socketMessenger.js"
-            // "constants.js", 
-            // "stats.js",
-            // "content_script.js"
+            "socketMessenger.js",
+            "constants.js", 
+            "stats.js",
+            "content_script.js"
         ],
         "css": ["styles.css"],
         "matches": ["https://play.globalpoker.com/*"],
