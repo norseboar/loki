@@ -5,6 +5,8 @@ from flask import abort, Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
+POKER_URL = 'https://play.globalpoker.com'
+
 app = Flask(__name__)
 app.config.from_object(os.environ['APP_SETTINGS'])
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -20,11 +22,16 @@ def check_password(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         headers = request.headers
-        if (headers.get('X-API-KEY', '') != app.config['API_KEY']):
+        if (headers.get('X-Api-Key', '') != app.config['API_KEY']):
             abort(401)
         return f(*args, **kwargs)
     return decorated_function
 
+
+@app.after_request
+def add_headers(response):
+    response.headers.add('Access-Control-Allow-Origin', POKER_URL)
+    return response
 
 @app.route('/players/<pid>')
 @check_password

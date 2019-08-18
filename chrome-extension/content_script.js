@@ -27,23 +27,8 @@ function createTableState() {
 
 let tableState = createTableState();
 
-
-
-function createPlayer(pid, nick, seat) {
-  return {
-    pid,
-    nick,
-    seat,
-    vpip: createStat(),
-    pfr: createStat(),
-    threeBet: createStat(),
-    cbet: createStat(),
-    foldToCbet: createStat()
-  }
-}
-
 function createHud() {
-  const seatOffset = tableState.myPlayerSeat !== -1 
+  const seatOffset = tableState.myPlayerSeat !== -1
     ? tableState.myPlayerSeat : 0;
   const seatContainer = document.getElementById(
     `seatContainer-${tableState.tableid}`
@@ -63,7 +48,7 @@ function createHud() {
     const seatElem = document.getElementById(elemId);
     if (!seatElem) {
       console.log(`could not find seat w/ name ${elemId}`)
-      return null;      
+      return null;
     }
 
     const positionHud = document.createElement('div');
@@ -141,7 +126,7 @@ function processAllStats() {
   });
 }
 
-function processMessage(message) {
+async function processMessage(message) {
   let logMsg = `${REVERSED_PACKET_CLASSES[message.classId]}`
   if (tableState.tableid === null) {
     switch(message.classId) {
@@ -165,14 +150,15 @@ function processMessage(message) {
 
   switch (message.classId) {
     case PACKET_CLASSES.SeatInfoPacket:
-      tableState.players[message.player.pid] = createPlayer(
+      tableState.players[message.player.pid] = await loadPlayer(
         message.player.pid, message.player.nick, message.seat);
       break;
     case PACKET_CLASSES.NotifyJoinPacket:
-      tableState.players[message.pid] = createPlayer(
+      tableState.players[message.pid] = await loadPlayer(
         message.pid, message.nick, message.seat);
       break;
     case PACKET_CLASSES.NotifyLeavePacket:
+      await savePlayer(tableState.players[message.pid])
       delete tableState.players[message.pid];
       break;
     case PACKET_CLASSES.NotifySeatedPacket:
@@ -180,6 +166,7 @@ function processMessage(message) {
       break;
     case PACKET_CLASSES.UnwatchResponsePacket:
     case PACKET_CLASSES.LeaveResponsePacket:
+      tableState.listPlayers().forEach(p => await savePlayer(p));
       tableState = createTableState();
       removeHud();
       break;
@@ -222,7 +209,7 @@ function processMessage(message) {
 
           const actionType = gameDataBytes[13];
 
-          if (![ACTION_TYPES.FOLD, ACTION_TYPES.CHECK, ACTION_TYPES.CALL, 
+          if (![ACTION_TYPES.FOLD, ACTION_TYPES.CHECK, ACTION_TYPES.CALL,
                 ACTION_TYPES.BET, ACTION_TYPES.RAISE].includes(actionType)) {
             break;
           }
@@ -271,7 +258,7 @@ function processMessage(message) {
             default:
               break;
           }
-          if (actionType === ACTION_TYPES.BET || 
+          if (actionType === ACTION_TYPES.BET ||
               actionType === ACTION_TYPES.RAISE) {
             gameState.raiseCount += 1;
           }
@@ -288,13 +275,13 @@ function processMessage(message) {
   // console.log(logMsg);
 }
 
-function retrieveMessage() {
+async function retrieveMessage() {
   const messageListElem = document.getElementById('__socketData')
   messageListElem.childNodes.forEach(function(messageElem) {
     const message = JSON.parse(messageElem.innerHTML);
     if (message.classId != null) {
       // console.log(REVERSED_PACKET_CLASSES[message.classId]);
-      processMessage(message)
+      await processMessage(message)
     }
   });
   while (messageListElem.firstChild) {
