@@ -20,7 +20,7 @@ def check_password(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         headers = request.headers
-        if (headers.get('X-Api-Key', '') != app.config['API_KEY']):
+        if (headers.get('X-API-KEY', '') != app.config['API_KEY']):
             abort(401)
         return f(*args, **kwargs)
     return decorated_function
