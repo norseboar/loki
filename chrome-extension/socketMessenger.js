@@ -46,18 +46,25 @@ function patchWebSocket() {
 
 }
 
+function checkForHead() {
+  if(!document.head) {
+    requestIdleCallback(checkForHead);
+  }
+  // Insert script that will patch WebSocket
+  var patchWebSocketScript = document.createElement('script');
+  patchWebSocketScript.type = 'text/javascript';
+  patchWebSocket.className = 'fs-block';
+  patchWebSocketScript.innerHTML = `
+    ${shouldSendMessage.toString()}
+    (${patchWebSocket.toString()})();
+  `
+  document.head.prepend(patchWebSocketScript);
+}
+requestIdleCallback(checkForHead);
+
+
 function checkForDOM() {
   if (document.body && document.head) {
-    // Insert script that will patch WebSocket
-    var patchWebSocketScript = document.createElement('script');
-    patchWebSocketScript.type = 'text/javascript';
-    patchWebSocket.className = 'fs-block';
-    patchWebSocketScript.innerHTML = `
-      ${shouldSendMessage.toString()}
-      (${patchWebSocket.toString()})();
-    `
-    document.head.prepend(patchWebSocketScript);
-
     // Create a hidden DOM element to store data from websocket
     var messageListElem = document.createElement('div');
     messageListElem.id = '__socketData';
@@ -68,5 +75,4 @@ function checkForDOM() {
     requestIdleCallback(checkForDOM);
   }
 }
-
 requestIdleCallback(checkForDOM);

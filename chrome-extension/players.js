@@ -12,7 +12,7 @@ async function loadPlayer(pid, nick, seat) {
 
   let existingData = null;
   if (response.ok) {
-    existingData = response.json();
+    existingData = await response.json();
     if (pid !== existingData.pid) {
       console.log(`Request for PID ${pid} fetched wrong player`)
       console.log(existingData);
@@ -28,7 +28,7 @@ async function loadPlayer(pid, nick, seat) {
     pfr: createStat(existingData && existingData.pfr),
     threeBet: createStat(existingData && existingData.threeBet),
     foldToCbet: createStat(existingData && existingData.foldToCbet),
-    isNew: Boolean(existingData)
+    isNew: !existingData
   }
   return player;
 }

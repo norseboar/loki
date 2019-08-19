@@ -269,7 +269,7 @@ async function processMessage(message) {
   }
 
   renderHUD();
-  console.log(logMsg);
+  // console.log(logMsg);
 }
 
 async function retrieveMessage() {
