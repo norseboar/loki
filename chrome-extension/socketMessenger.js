@@ -11,7 +11,7 @@ function patchWebSocket() {
   var wsAddListener = OrigWebSocket.prototype.addEventListener;
   wsAddListener = wsAddListener.call.bind(wsAddListener);
   window.WebSocket = function WebSocket(url, protocols) {
-    console.log('patch took')
+    alert('Websocket Patched')
     var ws;
     if (!(this instanceof WebSocket)) {
         // Called without 'new' (browsers will throw an error).
