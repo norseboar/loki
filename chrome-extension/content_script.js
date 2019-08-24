@@ -273,6 +273,9 @@ async function processMessage(message) {
 }
 
 async function retrieveMessage() {
+  if (!apiKey) {
+    return;
+  }
   const messageListElem = document.getElementById('__socketData')
   for (const messageElem of messageListElem.childNodes){
     const message = JSON.parse(messageElem.innerHTML);

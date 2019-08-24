@@ -1,14 +1,23 @@
 const SERVER_URL = 'https://loki-poker.herokuapp.com'
-// TODO: Replace this w/ config not accessible in code
-const API_KEY = `]Vfnx[c<RL95Y8/L,YqTgAs]L'V-Q&cA`
 
-const defaultOptions = {
-  mode: 'cors',
-  headers: {'X-Api-Key': API_KEY}
+let apiKey = null;
+
+chrome.storage.sync.get(['apiKey'], function(result) {
+  console.log(result);
+  apiKey = result.apiKey;
+});
+
+// Use a function so that apiKey is up to date
+function getDefaultOptions() {
+  return {
+    mode: 'cors',
+    headers: {'X-Api-Key': apiKey}
+  };
 }
 
 async function loadPlayer(pid, nick, seat) {
-  const response = await fetch(SERVER_URL + `/players/${pid}`, defaultOptions);
+  const response = await fetch(SERVER_URL + `/players/${pid}`,
+                               getDefaultOptions());
 
   let existingData = null;
   if (response.ok) {
@@ -34,7 +43,7 @@ async function loadPlayer(pid, nick, seat) {
 }
 
 async function savePlayer(player) {
-  const requestOptions = Object.assign({}, defaultOptions);
+  const requestOptions = Object.assign({}, getDefaultOptions());
   requestOptions.headers['Content-Type'] = 'application/json'
   requestOptions.body = JSON.stringify(player);
   let response;

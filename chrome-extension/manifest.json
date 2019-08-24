@@ -5,7 +5,8 @@
     "manifest_version": 2,
     "permissions": [
         "webRequest",
-        "https://play.globalpoker.com/"
+        "https://play.globalpoker.com/",
+        "storage"
     ],
     "content_scripts": [{
         "js": [
@@ -18,5 +19,9 @@
         "css": ["styles.css"],
         "matches": ["https://play.globalpoker.com/*"],
         "run_at": "document_start"
-    }]
+    }],
+    "options_ui": {
+        "page": "options.html",
+        "open_in_tab": false
+    }
 }
