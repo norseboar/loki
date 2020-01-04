@@ -36,6 +36,9 @@ async function loadPlayer(pid, nick, seat) {
     vpip: createStat(existingData && existingData.vpip),
     pfr: createStat(existingData && existingData.pfr),
     threeBet: createStat(existingData && existingData.threeBet),
+    foldToThreeBet: createStat(existingData && existingData.foldToThreeBet),
+    afp: createStat(existingData && existingData.afp),
+    cBet: createStat(existingData && existingData.cBet),
     foldToCbet: createStat(existingData && existingData.foldToCbet),
     isNew: !existingData
   }

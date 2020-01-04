@@ -28,23 +28,31 @@ function createTableState() {
 let tableState = createTableState();
 
 function createHud() {
+  // console.log('creating hud')
   const seatOffset = tableState.myPlayerSeat !== -1
     ? tableState.myPlayerSeat : 0;
+  // console.log(`myPlayerSeat is ${tableState.myPlayerSeat}`)
+  // console.log(`seat offset is ${seatOffset}`)
   const seatContainer = document.getElementById(
     `seatContainer-${tableState.tableid}`
   );
   if (!seatContainer) {
+    console.log('no seat container')
     // If no seatContainer can be found, that means the table html hasn't loaded
     // Rather than retry, we'll wait for the next set of messages to kick off
     // another render
     return;
   }
 
+  // console.log('about to create elems')
   tableState.hudElems = [...Array(TABLE_SIZE).keys()].map(function(i) {
+    // console.log(`running for index ${i}`)
     const seat = (i + seatOffset) % TABLE_SIZE;
+    // console.log(`seat is ${seat}`)
     const elemId = (tableState.myPlayerSeat !== -1 && i === 0
                     ? `myPlayerSeat-${tableState.tableid}`
                     : `seat${seat}-${tableState.tableid}`)
+    // console.log(`element is ${elemId}`)
     const seatElem = document.getElementById(elemId);
     if (!seatElem) {
       console.log(`could not find seat w/ name ${elemId}`)
@@ -122,15 +130,24 @@ function processAllStats() {
     player.vpip.process();
     player.pfr.process();
     player.threeBet.process();
+    player.foldToThreeBet.process();
+    player.afp.process();
+    player.cBet.process();
     player.foldToCbet.process();
   });
 }
 
 async function processMessage(message) {
   let logMsg = `${REVERSED_PACKET_CLASSES[message.classId]}`
+  console.log(`${message.classId} ${logMsg}`);
+  if (message.classId === 66){
+    console.log('66')
+    console.log(message);
+  }
   if (tableState.tableid === null) {
     switch(message.classId) {
       case PACKET_CLASSES.NotifySeatedPacket:
+      case PACKET_CLASSES.NotifySeatedPacketV2:
         tableState.myPlayerSeat = message.seat;
         tableState.tableid = message.tableid;
         break;
@@ -152,17 +169,21 @@ async function processMessage(message) {
     case PACKET_CLASSES.SeatInfoPacket:
       tableState.players[message.player.pid] = await loadPlayer(
         message.player.pid, message.player.nick, message.seat);
+      renderHUD();
       break;
     case PACKET_CLASSES.NotifyJoinPacket:
       tableState.players[message.pid] = await loadPlayer(
         message.pid, message.nick, message.seat);
+      renderHUD();
       break;
     case PACKET_CLASSES.NotifyLeavePacket:
       await savePlayer(tableState.players[message.pid])
       delete tableState.players[message.pid];
       break;
     case PACKET_CLASSES.NotifySeatedPacket:
+    case PACKET_CLASSES.NotifySeatedPacketV2:
       tableState.myPlayerSeat = message.seat;
+      renderHUD();
       break;
     case PACKET_CLASSES.UnwatchResponsePacket:
     case PACKET_CLASSES.LeaveResponsePacket:
@@ -228,6 +249,9 @@ async function processMessage(message) {
                   player.pfr.setHadOpportunity();
                   break;
                 case ACTION_TYPES.BET:
+                  player.vpip.setTookAction();
+                  player.pfr.setTookAction();
+                  break;
                 case ACTION_TYPES.RAISE:
                   player.vpip.setTookAction();
                   player.pfr.setTookAction();
@@ -236,15 +260,27 @@ async function processMessage(message) {
                   }
                   break;
                 case ACTION_TYPES.CHECK:
+                  player.vpip.setHadOpportunity();
+                  player.pfr.setHadOpportunity();
+                  break;
                 case ACTION_TYPES.FOLD:
                   player.vpip.setHadOpportunity();
                   player.pfr.setHadOpportunity();
+                  if (gameState.raiseCount === 2) {
+                    player.foldToThreeBet.setTookAction();
+                  }
                   break;
                 default:
                   break;
               }
               break;
             case GAME_PHASES.Flop:
+              if (gameState.raiseCount === 0) {
+                player.cBet.setHadOpportunity();
+                if (actionType === ACTION_TYPES.BET) {
+                  player.cBet.setTookAction();
+                }
+              }
               if (gameState.raiseCount === 1) {
                 player.foldToCbet.setHadOpportunity();
                 if (actionType === ACTION_TYPES.FOLD) {
@@ -259,6 +295,17 @@ async function processMessage(message) {
               actionType === ACTION_TYPES.RAISE) {
             gameState.raiseCount += 1;
           }
+          if (POSTFLOP_PHASES.includes(gameState.phase)) {
+            switch(actionType) {
+              case ACTION_TYPES.CALL:
+                player.afp.setHadOpportunity();
+                break;
+              case ACTION_TYPES.BET:
+              case ACTION_TYPES.RAISE:
+                player.afp.setTookAction();
+                break;
+            }
+          }
           break;
         default:
           break;
@@ -269,7 +316,6 @@ async function processMessage(message) {
   }
 
   renderHUD();
-  // console.log(logMsg);
 }
 
 async function retrieveMessage() {
@@ -280,7 +326,6 @@ async function retrieveMessage() {
   for (const messageElem of messageListElem.childNodes){
     const message = JSON.parse(messageElem.innerHTML);
     if (message.classId != null) {
-      // console.log(REVERSED_PACKET_CLASSES[message.classId]);
       await processMessage(message)
     }
   }

@@ -9,14 +9,21 @@ class Player(db.Model):
     vpip = Column(JSON)
     pfr = Column(JSON)
     threeBet = Column(JSON)
+    foldToThreeBet = Column(JSON)
+    afp = Column(JSON)
+    cBet = Column(JSON)
     foldToCbet = Column(JSON)
 
-    def __init__(self, pid, nickname, vpip, pfr, threeBet, foldToCbet):
+    def __init__(self, pid, nickname, vpip, pfr, threeBet, foldToThreeBet,
+                 afp, cBet, foldToCbet):
         self.id = pid
         self.nickname = nickname
         self.vpip = vpip
         self.pfr = pfr
         self.threeBet = threeBet
+        self.foldToThreeBet = foldToThreeBet
+        self.afp = afp
+        self.cBet = cBet
         self.foldToCbet = foldToCbet
 
     def to_dict(self):
@@ -26,11 +33,14 @@ class Player(db.Model):
             'vpip': self.vpip,
             'pfr': self.pfr,
             'threeBet': self.threeBet,
+            'foldToThreeBet': self.foldToThreeBet,
+            'afp': self.afp,
+            'cBet': self.cBet,
             'foldToCbet': self.foldToCbet
         }
 
     def update(self, nickname=None, vpip=None, pfr=None, threeBet=None,
-               foldToCbet=None):
+               foldToThreeBet=None, afp=None, cBet=None, foldToCbet=None):
         if nickname:
             self.nickname = nickname
         if vpip:
@@ -39,5 +49,11 @@ class Player(db.Model):
             self.pfr = pfr
         if threeBet:
             self.threeBet = threeBet
+        if foldToThreeBet:
+            self.foldToThreeBet = foldToThreeBet
+        if afp:
+            self.afp = afp
+        if cBet:
+            self.cBet = cBet
         if foldToCbet:
             self.foldToCbet = foldToCbet

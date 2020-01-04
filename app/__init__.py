@@ -59,6 +59,9 @@ def create_player():
         data.get('vpip', None),
         data.get('pfr', None),
         data.get('threeBet', None),
+        data.get('foldToThreeBet', None),
+        data.get('afp', None),
+        data.get('cBet', None),
         data.get('foldToCbet', None)
     )
     db.session.add(p)
@@ -80,6 +83,9 @@ def update_player(pid):
         data.get('vpip', None),
         data.get('pfr', None),
         data.get('threeBet', None),
+        data.get('foldToThreeBet', None),
+        data.get('afp', None),
+        data.get('cBet', None),
         data.get('foldToCbet', None)
     )
     db.session.add(p)

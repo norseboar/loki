@@ -73,6 +73,7 @@ const PACKET_CLASSES = {
   MttSeatedPacket: 209,
   MttPickedUpPacket: 210,
   NotifySeatedPacket: 62,
+  NotifySeatedPacketV2: 66,
   GameModeChangePacket: 65
 }
 
@@ -264,6 +265,7 @@ const REVERSED_PACKET_CLASSES = {
   209: "MttSeatedPacket",
   210: "MttPickedUpPacket",
   62: "NotifySeatedPacket",
+  66: "NotifySeatedPacketV2",
   65: "GameModeChangePacket"
 }
 
@@ -459,3 +461,9 @@ const GAME_PHASES = {
   Turn: 'Turn',
   River: 'River',
 }
+
+const POSTFLOP_PHASES = [
+  GAME_PHASES.Flop,
+  GAME_PHASES.Turn,
+  GAME_PHASES.River
+]
