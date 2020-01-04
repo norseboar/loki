@@ -1,7 +1,7 @@
 {
-    "name": "Loki Poker Tracker",
+    "name": "Loki",
     "version": "1.0",
-    "description": "Track poker hands",
+    "description": "Improve your game",
     "manifest_version": 2,
     "permissions": [
         "webRequest",
