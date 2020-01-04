@@ -65,34 +65,63 @@ function createHud() {
     const player = tableState.listPlayers().find(p => p.seat === seat);
     if (player) {
       positionHud.innerHTML = `
-        <table>
-          <thead><tr>
-            <td></td><td>VPIP</td><td>PFR</td><td>3Bet</td><td>FCBet</td>
-          </tr></thead>
-          <tbody>
-            <tr>
-              <td><b>%</b></td>
-              <td>${player.vpip.getPercentage()}</td>
-              <td>${player.pfr.getPercentage()}</td>
-              <td>${player.threeBet.getPercentage()}</td>
-              <td>${player.foldToCbet.getPercentage()}</td>
-            </tr>
-            <tr>
-              <td><b>A</b></td>
-              <td>${player.vpip.actions}</td>
-              <td>${player.pfr.actions}</td>
-              <td>${player.threeBet.actions}</td>
-              <td>${player.foldToCbet.actions}</td>
-            </tr>
-            <tr>
-              <td><b>O</b></td>
-              <td>${player.vpip.opportunities}</td>
-              <td>${player.pfr.opportunities}</td>
-              <td>${player.threeBet.opportunities}</td>
-              <td>${player.foldToCbet.opportunities}</td>
-            </tr>
-          </tbody>
-        </table>`;
+        <div>
+          ${player.vpip.getPercentage()} / ${player.pfr.getPercentage()}
+          (${player.vpip.opportunities})
+        </div>
+        <div>
+          ${player.threeBet.getPercentage()} (${player.threeBet.opportunities})
+          / ${player.foldToThreeBet.getPercentage()}
+          (${player.foldToThreeBet.opportunities})
+        </div>
+        <div>
+          ${player.afp.getPercentage()} (${player.afp.opportunities})
+        </div>
+        <div>
+          ${player.cBet.getPercentage()} (${player.cBet.opportunities})
+          / ${player.foldToCbet.getPercentage()}
+          (${player.foldToCbet.opportunities})
+        </div>
+      `;
+      // positionHud.innerHTML = `
+      //   <table>
+      //     <thead><tr>
+      //       <td></td><td>VPIP</td><td>PFR</td><td>3B</td><td>F3B</td>
+      //       <td>AFP</td><td>CB</td><td>FCB</td><td>
+      //     </tr></thead>
+      //     <tbody>
+      //       <tr>
+      //         <td><b>%</b></td>
+      //         <td>${player.vpip.getPercentage()}</td>
+      //         <td>${player.pfr.getPercentage()}</td>
+      //         <td>${player.threeBet.getPercentage()}</td>
+      //         <td>${player.foldToThreeBet.getPercentage()}</td>
+      //         <td>${player.afp.getPercentage()}</td>
+      //         <td>${player.cBet.getPercentage()}</td>
+      //         <td>${player.foldToCbet.getPercentage()}</td>
+      //       </tr>
+      //       <tr>
+      //         <td><b>A</b></td>
+      //         <td>${player.vpip.actions}</td>
+      //         <td>${player.pfr.actions}</td>
+      //         <td>${player.threeBet.actions}</td>
+      //         <td>${player.foldToThreeBet.actions}</td>
+      //         <td>${player.afp.actions}</td>
+      //         <td>${player.cBet.actions}</td>
+      //         <td>${player.foldToCbet.actions}</td>
+      //       </tr>
+      //       <tr>
+      //         <td><b>O</b></td>
+      //         <td>${player.vpip.opportunities}</td>
+      //         <td>${player.pfr.opportunities}</td>
+      //         <td>${player.threeBet.opportunities}</td>
+      //         <td>${player.foldToThreeBet.opportunities}</td>
+      //         <td>${player.afp.opportunities}</td>
+      //         <td>${player.cBet.opportunities}</td>
+      //         <td>${player.foldToCbet.opportunities}</td>
+      //       </tr>
+      //     </tbody>
+      //   </table>`;
     }
 
     seatElem.append(positionHud);
@@ -315,7 +344,7 @@ async function processMessage(message) {
       break;
   }
 
-  renderHUD();
+  // renderHUD();
 }
 
 async function retrieveMessage() {
