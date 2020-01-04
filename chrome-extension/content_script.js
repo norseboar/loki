@@ -66,20 +66,20 @@ function createHud() {
     if (player) {
       positionHud.innerHTML = `
         <div>
-          ${player.vpip.getPercentage()} / ${player.pfr.getPercentage()}
+          ${player.vpip.getPercentage()}% / ${player.pfr.getPercentage()}%
           (${player.vpip.opportunities})
         </div>
         <div>
-          ${player.threeBet.getPercentage()} (${player.threeBet.opportunities})
-          / ${player.foldToThreeBet.getPercentage()}
+          ${player.threeBet.getPercentage()}% (${player.threeBet.opportunities})
+          / ${player.foldToThreeBet.getPercentage()}%
           (${player.foldToThreeBet.opportunities})
         </div>
         <div>
-          ${player.afp.getPercentage()} (${player.afp.opportunities})
+          ${player.afp.getPercentage()}% (${player.afp.opportunities})
         </div>
         <div>
-          ${player.cBet.getPercentage()} (${player.cBet.opportunities})
-          / ${player.foldToCbet.getPercentage()}
+          ${player.cBet.getPercentage()}% (${player.cBet.opportunities})
+          / ${player.foldToCbet.getPercentage()}%
           (${player.foldToCbet.opportunities})
         </div>
       `;
@@ -344,7 +344,7 @@ async function processMessage(message) {
       break;
   }
 
-  // renderHUD();
+  renderHUD();
 }
 
 async function retrieveMessage() {

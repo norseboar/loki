@@ -15,4 +15,5 @@ thead {
   background-color: white;
   color: black;
   user-select: text;
+  line-height: 16px;
 }
