@@ -66,20 +66,23 @@ function createHud() {
     if (player) {
       positionHud.innerHTML = `
         <div>
-          ${player.vpip.getPercentage()}% / ${player.pfr.getPercentage()}%
+          ${player.vpip.getPercentage()} / ${player.pfr.getPercentage()}
           (${player.vpip.opportunities})
         </div>
         <div>
-          ${player.threeBet.getPercentage()}% (${player.threeBet.opportunities})
-          / ${player.foldToThreeBet.getPercentage()}%
+          ${player.threeBet.getPercentage()} (${player.threeBet.opportunities})
+          / ${player.foldToThreeBet.getPercentage()}
           (${player.foldToThreeBet.opportunities})
         </div>
         <div>
-          ${player.afp.getPercentage()}% (${player.afp.opportunities})
+          ${Math.round(10*(player.afp.actions /
+              (player.afp.opportunities - player.afp.actions)
+            ))/10}
+          (${player.afp.opportunities})
         </div>
         <div>
-          ${player.cBet.getPercentage()}% (${player.cBet.opportunities})
-          / ${player.foldToCbet.getPercentage()}%
+          ${player.cBet.getPercentage()} (${player.cBet.opportunities})
+          / ${player.foldToCbet.getPercentage()}
           (${player.foldToCbet.opportunities})
         </div>
       `;
@@ -168,10 +171,7 @@ function processAllStats() {
 
 async function processMessage(message) {
   let logMsg = `${REVERSED_PACKET_CLASSES[message.classId]}`
-  console.log(`${message.classId} ${logMsg}`);
   if (message.classId === 66){
-    console.log('66')
-    console.log(message);
   }
   if (tableState.tableid === null) {
     switch(message.classId) {
@@ -271,6 +271,9 @@ async function processMessage(message) {
             case GAME_PHASES.Preflop:
               if (gameState.raiseCount === 1) {
                 player.threeBet.setHadOpportunity();
+              }
+              if (gameState.raiseCount === 2) {
+                player.foldToThreeBet.setHadOpportunity();
               }
               switch(actionType) {
                 case ACTION_TYPES.CALL:
