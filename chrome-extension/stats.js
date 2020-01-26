@@ -2,14 +2,18 @@ function createStat(statData) {
   return {
     actions: statData ? statData.actions : 0,
     opportunities: statData ? statData.opportunities : 0,
+    sessionActions: 0,
+    sessionOpportunities: 0,
     hadOpportunity: false,
     tookAction: false,
     process: function() {
       if (this.hadOpportunity) {
         this.opportunities += 1;
+        this.sessionOpportunities += 1;
       };
       if (this.tookAction) {
         this.actions += 1;
+        this.sessionActions += 1;
       }
       this.hadOpportunity = false;
       this.tookAction = false;
